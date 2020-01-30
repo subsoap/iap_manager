@@ -1,2 +1,2 @@
-# iap_manager
+# IAP Manager
 IAP Manager for Defold
