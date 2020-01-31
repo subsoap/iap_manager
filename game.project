@@ -13,4 +13,8 @@ input_method = HiddenInputField
 
 [project]
 title = IAP_Manager
+dependencies = https://github.com/britzl/ludobits/archive/master.zip,https://github.com/defold/extension-iap/archive/master.zip
+
+[iap]
+auto_finish_transactions = 0
 
