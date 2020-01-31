@@ -14,13 +14,15 @@ function init(self)
 	iap_manager.init()
 
 	broadcast.register("iap_purchased", function(message, sender)
-		if message.ident == "android.test.purchased" then
+		print("Got message...")
+		pprint(message)
+		if message.ident == products[1].ident then
 			gui.set_text(gui.get_node("text_test_product_is_owned"), "Is Owned: True (Purchased)")
 		end
 	end)
 
 	broadcast.register("iap_restored", function(message, sender)
-		if message.ident == "android.test.purchased" then
+		if message.ident == products[1].ident then
 			gui.set_text(gui.get_node("text_test_product_is_owned"), "Is Owned: True (Restored)")
 		end
 	end)
@@ -38,8 +40,7 @@ function update(self, dt)
 end
 
 function on_message(self, message_id, message, sender)
-	-- Add message-handling code here
-	-- Remove this function if not needed
+	broadcast.on_message(message_id, message, sender)
 end
 
 function on_input(self, action_id, action)
