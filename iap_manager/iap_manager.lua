@@ -21,8 +21,8 @@ local broadcast = require("ludobits.m.broadcast")
 -- Should you show prices in game? Generally yes. But otherwise having "Press Buy Now to see price in local currency" is fine.
 
 -- Should you verify purchases on a server? Yes, if you have an easy way to do it. If your game gets big 100% worth doing this.
--- The reason this matters is there are easy ways to fake purchases (which then don't pass server validation, 
--- and if someone really wants something they will buy legit.
+-- The reason this matters is there are easy ways to fake purchases (which then don't pass server validation), 
+-- and if someone really wants something they will buy legit - you will convert a % of pirates to real buyers by verifying.
 
 local M = {}
 
