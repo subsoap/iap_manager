@@ -1,5 +1,7 @@
 local broadcast = require("ludobits.m.broadcast")
 
+-- Supported stores: Apple App Store and Google Play
+
 -- Required deps:
 -- https://github.com/britzl/ludobits/archive/master.zip
 -- https://github.com/defold/extension-iap/archive/master.zip
@@ -9,11 +11,16 @@ local broadcast = require("ludobits.m.broadcast")
 -- https://defold.com/manuals/iap/
 -- https://github.com/britzl/ludobits/blob/master/ludobits/m/broadcast.md
 
+-- Should you restore purchases when your app luanches? No, but you can show a restore purchases button.
+-- https://stackoverflow.com/a/1757864
+
+-- Should you show prices in game? Generally yes. But otherwise having "Press Buy Now to see price in local currency" is fine.
+
 local M = {}
 
 M.VERBOSE = true
 
--- debug Android product ids
+-- debug Android product ids, you can use these to test specific outcomes
 --[[
 https://developer.android.com/google/play/billing/billing_testing
 android.test.purchased
@@ -26,17 +33,19 @@ android.test.item_unavailable
 Google Play responds as though the item being purchased was not listed in your application’s product list.
 --]]
 
-M.ID_ANDROID_TEST_PURCHASED = "android.test.purchased"
-M.ID_ANDROID_TEST_CANCELED = "android.test.canceled"
-M.ID_ANDROID_TEST_REFUNDED = "android.test.refunded"
-M.ID_ANDROID_TEST_UNAVAILABLE = "android.test.item_unavailable"
+-- data
 
 M.owned_products = {} -- verified owned products
 M.consumable_products = {} -- verified consumable products
 M.available_products = {} -- store validated product ids
-M.registered_products = {}
+M.registered_products = {} -- defined product details
 
 -- functions
+
+local function round(num, idp)
+	local mult = 10^(idp or 0)
+	return math.floor(num * mult + 0.5) / mult
+end
 
 local function iap_listener(self, transaction, error)
 	broadcast.send("iap_listener", {transaction = transaction, error = error})
@@ -51,7 +60,7 @@ local function iap_listener(self, transaction, error)
 	end
 
 	if error == nil then
-		-- transaction.ident - product identifier
+		-- transaction.ident - product identifier ex: com.defold.my_iap_product
 		-- transaction.state - see below
 		-- transaction.date - date and time for transaction
 		-- transaction.trans_ident - transaction identifier, only set when state is either 
@@ -70,10 +79,10 @@ local function iap_listener(self, transaction, error)
 
 			broadcast.send("iap_purchased", transaction.ident)
 
-			if not M.consumable_products[transaction.ident] then
+			if not M.registered_products[transaction.ident].is_consumable then
 				M.owned_products[transaction.ident] = transaction
 			else
-				M.consumable_products[transaction.trans_ident] = transaction
+				M.consumable_products[transaction.ident] = transaction
 			end
 
 			if iap.get_provider_id() == iap.PROVIDER_ID_APPLE then -- permanent Apple products must always be finished
@@ -120,43 +129,48 @@ function M.register_products(products)
 	end
 end
 
+-- register your products before doing init
 function M.init()
 	if iap then
-		iap.list({ -- max of 20 per request, if more than 20 do multiple requests
-			
-			-- todo
-			
-		},M.update_valid_product_list)
+		local product_list = {}
+		for k,v in M.registered_products do
+			table.insert(product_list, v.ident)
+		end
+
+		-- max of 20 per request of iap.list, if more than 20 do multiple requests
+		local product_list_segments = {}
+		while next(product_list) ~= nil do
+			local product_to_add = table.remove(product_list)
+			table.insert(product_list_segments, product_to_add)
+			if next(product_list) == nil or #product_list_segments == 20 then
+				iap.list(product_list_segments, M.update_valid_product_list)
+				product_list_segments = {}
+			end
+		end
 		
 		iap.set_listener(iap_listener)
-		iap.restore() -- only manually restore please
 	end
 end
 
 function M.update_valid_product_list(self, products, error)
 	if error == nil then
-		for _,product in ipairs(products) do
+		for _, product in ipairs(products) do
 			M.available_products[product.ident] = {}
 			M.available_products[product.ident].ident = product.ident
 			M.available_products[product.ident].title = product.title
 			M.available_products[product.ident].description = product.description
-			M.available_products[product.ident].price = product.price
+			M.available_products[product.ident].price = round(product.price, 2) -- rounded to avoid prices like 34.823492827392...
 			M.available_products[product.ident].price_string = product.price_string
 			M.available_products[product.ident].currency_code = product.currency_code
+			if M.VERBOSE then
+				print("IAP Manager", "New Valid Product", product.ident)
+			end
 		end
 	else
 		if M.VERBOSE then 
 			print("IAP Manager", "iap.list error", error.error)
-			broadcast.send("iap_list_error", error.error)
 		end
-	end
-end
-
-function M.check_if_owned(id)
-	if M.owned_products[id] ~= nil then
-		return true
-	else
-		return false
+		broadcast.send("iap_list_error", error.error)
 	end
 end
 
@@ -180,13 +194,13 @@ end
 
 function M.restore_owned()
 	if not iap then return end
-	print("Attempting to restore...")
+	if M.VERBOSE then print("IAP Manager", "Attempting to restore...") end
 	iap.restore()
 end
 
 function M.buy(id)
 	if not iap then return end
-	print("Attempting to buy...", id)
+	if M.VERBOSE then print("IAP Manager", "Attempting to buy...", id) end
 	iap.buy(id)
 end
 
