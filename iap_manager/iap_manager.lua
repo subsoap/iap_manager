@@ -2,6 +2,9 @@ local broadcast = require("ludobits.m.broadcast")
 
 -- Supported stores: Apple App Store and Google Play
 
+-- On Apple App Store you define if a product is permanent or not when creating it on App Store Connect
+-- On Google Play, any IAP can be treated as a consumable or premanent if you finalize it or not
+
 -- Required deps:
 -- https://github.com/britzl/ludobits/archive/master.zip
 -- https://github.com/defold/extension-iap/archive/master.zip
@@ -77,9 +80,11 @@ local function iap_listener(self, transaction, error)
 		elseif transaction.state == iap.TRANS_STATE_PURCHASED then
 			if M.VERBOSE then print("IAP Manager", "Transaction State: Purchased") end
 
-			broadcast.send("iap_purchased", transaction.ident)
+			broadcast.send("iap_purchased", {ident = transaction.ident})
 
-			if not M.registered_products[transaction.ident].is_consumable then
+			pprint(M.registered_products)
+
+			if not M.registered_products[transaction.ident] or not M.registered_products[transaction.ident].is_consumable then
 				M.owned_products[transaction.ident] = transaction
 			else
 				M.consumable_products[transaction.ident] = transaction
@@ -97,7 +102,7 @@ local function iap_listener(self, transaction, error)
 			if M.VERBOSE then print("IAP Manager", "Transaction State: Failed") end
 		elseif transaction.state == iap.TRANS_STATE_RESTORED then
 			if M.VERBOSE then print("IAP Manager", "Transaction State: Restored") end
-			broadcast.send("iap_restored", transaction.ident)
+			broadcast.send("iap_restored", {ident = transaction.ident})
 		end
 	else
 		-- error.reason can be
@@ -105,7 +110,7 @@ local function iap_listener(self, transaction, error)
 		-- iap.REASON_USER_CANCELED
 
 		if error.reason then
-			broadcast.send("iap_error", error.reason)
+			broadcast.send("iap_error", error)
 		end
 
 		if M.VERBOSE and error.reason == iap.REASON_USER_CANCELED then
@@ -170,7 +175,7 @@ function M.update_valid_product_list(self, products, error)
 		if M.VERBOSE then 
 			print("IAP Manager", "iap.list error", error.error)
 		end
-		broadcast.send("iap_list_error", error.error)
+		broadcast.send("iap_list_error", error)
 	end
 end
 
