@@ -133,7 +133,7 @@ end
 function M.init()
 	if iap then
 		local product_list = {}
-		for k,v in M.registered_products do
+		for k,v in pairs(M.registered_products) do
 			table.insert(product_list, v.ident)
 		end
 

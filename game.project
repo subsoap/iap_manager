@@ -10,6 +10,7 @@ height = 640
 
 [android]
 input_method = HiddenInputField
+package = com.example.iap_manager
 
 [project]
 title = IAP_Manager
@@ -17,4 +18,7 @@ dependencies = https://github.com/britzl/ludobits/archive/master.zip,https://git
 
 [iap]
 auto_finish_transactions = 0
+
+[library]
+include_dirs = iap_manager
 
