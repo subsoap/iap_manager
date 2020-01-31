@@ -16,8 +16,13 @@ local broadcast = require("ludobits.m.broadcast")
 
 -- Should you restore purchases when your app luanches? No, but you can show a restore purchases button.
 -- https://stackoverflow.com/a/1757864
+-- Do note that on Android you will get Purchased events on app launch for products your user owns / has not consumed.
 
 -- Should you show prices in game? Generally yes. But otherwise having "Press Buy Now to see price in local currency" is fine.
+
+-- Should you verify purchases on a server? Yes, if you have an easy way to do it. If your game gets big 100% worth doing this.
+-- The reason this matters is there are easy ways to fake purchases (which then don't pass server validation, 
+-- and if someone really wants something they will buy legit.
 
 local M = {}
 
