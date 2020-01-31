@@ -98,6 +98,7 @@ local function iap_listener(self, transaction, error)
 			
 		elseif transaction.state == iap.TRANS_STATE_UNVERIFIED then
 			if M.VERBOSE then print("IAP Manager", "Transaction State: Unverified") end
+			-- https://defold.com/manuals/iap/#asynchronous-payments
 		elseif transaction.state == iap.TRANS_STATE_FAILED then
 			if M.VERBOSE then print("IAP Manager", "Transaction State: Failed") end
 		elseif transaction.state == iap.TRANS_STATE_RESTORED then
