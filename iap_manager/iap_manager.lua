@@ -135,32 +135,32 @@ function M.register_products(products)
 	-- 	{ ident = "com.defold.test_consumable", is_consumable = true},
 	-- }
 	for k, v in pairs(products) do
-		if M.VERBOSE then print("IAP Manager", "Registered product:", v.ident, "Is consumable:", v.is_consumable) end
+		if M.VERBOSE then print("IAP Manager", "Registered Product:", v.ident, "Is consumable:", v.is_consumable) end
 		M.registered_products[v.ident] = v
 	end
 end
 
 -- register your products before doing init
 function M.init()
-	if iap then
-		local product_list = {}
-		for k,v in pairs(M.registered_products) do
-			table.insert(product_list, v.ident)
-		end
-
-		-- max of 20 per request of iap.list, if more than 20 do multiple requests
-		local product_list_segments = {}
-		while next(product_list) ~= nil do
-			local product_to_add = table.remove(product_list)
-			table.insert(product_list_segments, product_to_add)
-			if next(product_list) == nil or #product_list_segments == 20 then
-				iap.list(product_list_segments, M.update_valid_product_list)
-				product_list_segments = {}
-			end
-		end
-		
-		iap.set_listener(iap_listener)
+	if not iap then return false end
+	
+	local product_list = {}
+	for k,v in pairs(M.registered_products) do
+		table.insert(product_list, v.ident)
 	end
+
+	-- max of 20 per request of iap.list, if more than 20 do multiple requests
+	local product_list_segments = {}
+	while next(product_list) ~= nil do
+		local product_to_add = table.remove(product_list)
+		table.insert(product_list_segments, product_to_add)
+		if next(product_list) == nil or #product_list_segments == 20 then
+			iap.list(product_list_segments, M.update_valid_product_list)
+			product_list_segments = {}
+		end
+	end
+	
+	iap.set_listener(iap_listener)
 end
 
 function M.update_valid_product_list(self, products, error)
