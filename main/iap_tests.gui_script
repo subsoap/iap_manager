@@ -1,9 +1,7 @@
 local broadcast = require("ludobits.m.broadcast")
 local iap_manager = require("iap_manager.iap_manager")
 
-function init(self)
-	msg.post(".", "acquire_input_focus")
-	
+local function register_products(self)
 	self.products = {
 		{
 			ident = "com.test.product",
@@ -11,6 +9,14 @@ function init(self)
 		},
 	}
 	iap_manager.register_products(self.products)
+end
+	
+
+function init(self)
+	msg.post(".", "acquire_input_focus")
+	
+	register_products(self)
+	
 	iap_manager.init()
 
 	broadcast.register("iap_purchased", function(message, sender)

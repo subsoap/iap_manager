@@ -87,8 +87,6 @@ local function iap_listener(self, transaction, error)
 
 			broadcast.send("iap_purchased", {ident = transaction.ident})
 
-			pprint(M.registered_products)
-
 			if not M.registered_products[transaction.ident] or not M.registered_products[transaction.ident].is_consumable then
 				M.owned_products[transaction.ident] = transaction
 			else
