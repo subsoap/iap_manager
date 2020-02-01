@@ -94,7 +94,7 @@ local function iap_listener(self, transaction, error)
 			end
 
 			if iap.get_provider_id() == iap.PROVIDER_ID_APPLE then -- permanent Apple products must always be finished
-				if not consumable_list[transaction.ident] then
+				if not M.consumable_products[transaction.ident] then
 					iap.finish(transaction)
 				end
 			end
