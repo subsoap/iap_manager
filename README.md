@@ -7,4 +7,6 @@ https://forum.defold.com/t/iap-manager-easier-in-app-purchases-for-google-play-a
 ```
 https://github.com/subsoap/iap_manager/archive/master.zip
 https://github.com/britzl/ludobits/archive/master.zip
+https://github.com/defold/extension-iap/archive/master.zip
+
 ```
