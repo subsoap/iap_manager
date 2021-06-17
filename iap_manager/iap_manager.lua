@@ -97,6 +97,11 @@ local function iap_listener(self, transaction, error)
 				if not M.consumable_products[transaction.ident] then
 					iap.finish(transaction)
 				end
+			elseif iap.get_provider_id() == iap.PROVIDER_ID_GOOGLE then
+				if not M.consumable_products[transaction.ident] then
+					if M.VERBOSE then print("IAP Manager", "Transaction Acknolwedged") end
+					iap.acknowledge(transaction)
+				end
 			end
 			
 		elseif transaction.state == iap.TRANS_STATE_UNVERIFIED then
@@ -153,7 +158,7 @@ function M.init()
 		local product_to_add = table.remove(product_list)
 		table.insert(product_list_segments, product_to_add)
 		if next(product_list) == nil or #product_list_segments == 20 then
-			iap.list(product_list_segments, M.update_valid_product_list)
+			pprint(iap.list(product_list_segments, M.update_valid_product_list))
 			product_list_segments = {}
 		end
 	end
